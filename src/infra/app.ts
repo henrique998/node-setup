@@ -1,24 +1,34 @@
-import fastify from 'fastify'
+import cors from 'cors'
+import express, { NextFunction, Request, Response } from 'express'
+import 'express-async-errors'
+import 'reflect-metadata'
+import swaggerUi from 'swagger-ui-express'
 import { ZodError } from 'zod'
+
+import swaggerFile from './swagger.json'
+
 import { AppError } from '../application/errors/AppError'
-import { accountsRoutes } from './http/routes/accounts'
+import { routes } from './http/routes'
 
-const app = fastify()
+const app = express()
 
-app.register(accountsRoutes)
+app.use(cors())
+app.use(express.json())
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerFile))
+app.use(routes)
 
-app.setErrorHandler((err, _, reply) => {
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof ZodError) {
-    return reply
+    return res
       .status(400)
       .send({ message: 'Validation error.', issues: err.format() })
   }
 
   if (err instanceof AppError) {
-    return reply.status(err.statusCode).send({ message: err.message })
+    return res.status(err.statusCode).send({ message: err.message })
   }
 
-  return reply.status(500).send({ message: 'Internal server error.' })
+  return res.status(500).send({ message: 'Internal server error.' })
 })
 
 export { app }

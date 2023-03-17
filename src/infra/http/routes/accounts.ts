@@ -1,7 +1,9 @@
-import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
+import { Request, Response, Router } from 'express'
 
-export async function accountsRoutes(app: FastifyInstance) {
-  app.get('/', (request: FastifyRequest, reply: FastifyReply) => {
-    return 'accounts'
-  })
-}
+const accountRoute = Router()
+
+accountRoute.get('/', (req: Request, res: Response) => {
+  return res.send('accounts')
+})
+
+export { accountRoute as accountsRoutes }
